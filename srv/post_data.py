@@ -47,7 +47,7 @@ def main(csvfile, raspi_mac_addr):
                     total += size
                 del data[:]
         else:
-            print "Skip invalid data. {o}".format(o)
+            print "Skip invalid data."
 
     size = len(data)
     if size > 0:
