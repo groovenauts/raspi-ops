@@ -1,0 +1,2 @@
+zabbix_agent:
+	server: "MY ZABBIX SERVER"

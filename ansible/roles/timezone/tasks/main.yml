@@ -1,0 +1,1 @@
+- command: sudo timedatectl set-timezone Asia/Tokyo
