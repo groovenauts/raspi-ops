@@ -1,0 +1,5 @@
+---
+url: https://magellan-iot-08afmhkr-dot-blocks-next-2017.appspot.com/
+api_token: b4aab9cc7261abbf745404b3
+message_type_measure: raspi_measure
+message_type_sniffer: wifi_rssi
