@@ -5,3 +5,11 @@
     - timezone
     - git
     - zabbix-agent
+    - tshark
+    - python-pip
+    - pyyaml
+    - requests
+    - grequests
+    - mon-if
+    - capture
+    - post_data
