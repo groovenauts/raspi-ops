@@ -1,1 +1,2 @@
 - apt: name=python-pip
+- pip: name=pip state=latest
