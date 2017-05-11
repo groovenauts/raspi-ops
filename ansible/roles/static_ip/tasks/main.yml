@@ -1,0 +1,8 @@
+- lineinfile: dest=/etc/dhcpcd.conf regexp="^interface " line="interface {{ static_ip.interface }}"
+  notify: reboot os
+- lineinfile: dest=/etc/dhcpcd.conf regexp="^static ip_address=" line="static ip_address={{ static_ip.ip_address }}"
+  notify: reboot os
+- lineinfile: dest=/etc/dhcpcd.conf regexp="^static routers=" line="static routers={{ static_ip.routers }}"
+  notify: reboot os
+- lineinfile: dest=/etc/dhcpcd.conf regexp="^static domain_name_server=" line="static domain_name_server={{ static_ip.domain_name_server }}"
+  notify: reboot os
