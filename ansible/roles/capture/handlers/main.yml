@@ -1,0 +1,2 @@
+- name: restart capture
+  systemd: name=capture state=restarted daemon_reload=yes

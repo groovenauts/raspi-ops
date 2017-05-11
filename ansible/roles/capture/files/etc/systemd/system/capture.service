@@ -1,0 +1,10 @@
+[Unit]
+Description = Capture network
+
+[Service]
+EnvironmentFile=/srv/capture/capture.conf
+ExecStart=/srv/capture/capture.sh
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+Type=simple
