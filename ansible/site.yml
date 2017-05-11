@@ -11,3 +11,4 @@
     - requests
     - grequests
     - mon-if
+    - { role: static_ip, tags: [ 'static_ip' ] }
