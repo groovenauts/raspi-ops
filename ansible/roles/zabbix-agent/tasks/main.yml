@@ -1,0 +1,9 @@
+- apt: name=zabbix-agent
+- lineinfile: dest=/etc/zabbix/zabbix_agentd.conf regexp="^Server=" line="Server={{ zabbix_agent.server }}"
+  notify: restart zabbix-agent
+- lineinfile: dest=/etc/zabbix/zabbix_agentd.conf regexp="^ServerActive" line="ServerActive={{ zabbix_agent.server }}"
+  notify: restart zabbix-agent
+- lineinfile: dest=/etc/zabbix/zabbix_agentd.conf regexp="^Hostname=" line="Hostname={{ ansible_hostname }}"
+  notify: restart zabbix-agent
+- lineinfile: dest=/etc/zabbix/zabbix_agentd.conf regexp="^HostnameItem=" line="HostnameItem={{ ansible_hostname }}"
+  notify: restart zabbix-agent

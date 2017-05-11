@@ -1,0 +1,13 @@
+- name: config server image
+  hosts: all
+  become: yes
+  roles:
+    - timezone
+    - git
+    - zabbix-agent
+    - tshark
+    - python-pip
+    - pyyaml
+    - requests
+    - grequests
+    - mon-if

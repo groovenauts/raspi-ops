@@ -1,0 +1,8 @@
+zabbix_agent:
+  server: "MY ZABBIX SERVER"
+pyyaml:
+  version: 3.11
+requests:
+  version: 0.11.1
+grequests:
+  version: 0.2.0
