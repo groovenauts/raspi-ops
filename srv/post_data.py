@@ -14,11 +14,11 @@ NUM_PER_REQUEST = 100
 def main(csvfile, raspi_mac_addr):
     data = []
     total = 0
-    prev = []
     f = open(csvfile, 'r')
     reader = csv.reader(f)
     header = next(reader)
     row = [ v for v in reader]
+    table = {}
     for o in row:
         if len(o) == 3:
             ts = o[0]
@@ -26,20 +26,17 @@ def main(csvfile, raspi_mac_addr):
             rssi = o[2]
             if ts and src_mac and rssi and raspi_mac_addr:
                 ts = ts.split(".")[0]
-                if len(prev) == 3:
-                    prev_ts = prev[0].split(".")[0]
-                    prev_src_mac = prev[1]
-                    if ts == prev_ts and src_mac == prev_src_mac:
-                        print "Skip duplicate data. ts={0} mac={1}".format(ts, src_mac)
-                        continue
+                if table.has_key(ts + "." + src_mac):
+                    print "Skip duplicate data. ts={0} mac={1}".format(ts, src_mac)
+                    continue
+                table[ts + "." + src_mac] = True
                 data.append({
                     "timestamp": ts,
                     "src_mac": src_mac,
                     "rssi": rssi,
                     "raspi_mac": raspi_mac_addr,
                 })
-                prev = o[:]
-            
+
             size = len(data)
             if size >= NUM_PER_REQUEST:
                 ret = common.http_post(CONFIG['url'], CONFIG['api_token'], CONFIG['message_type_sniffer'], data)
