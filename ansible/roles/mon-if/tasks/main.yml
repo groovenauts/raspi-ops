@@ -1,3 +1,4 @@
 - file: path=/srv/mon-if state=directory owner=root group=root mode=0755
 - copy: src=srv/mon-if/mon-if.sh dest=/srv/mon-if/mon-if.sh owner=root group=root mode=0700
+  notify: exec mon-if
 - cron: name="Set mon0 interface." special_time=reboot job="/srv/mon-if/mon-if.sh" 
