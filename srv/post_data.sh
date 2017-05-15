@@ -25,12 +25,12 @@ fi
 while :
 do
   echo "------------------------------------------------------------------"
-  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 ls | wc -w`
+  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls | wc -w`
   if [ ${file_count} -lt 2 ]; then
     echo "[DEBUG] The number of files is ${file_count}, less than 2"
     continue
   fi
-  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 ls -1tr`; do
+  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1tr`; do
     # Last update timestamp
     pcap_ts=`stat -c %Y ${file}` # => 1493263557
     echo "[INFO] Processing file: ${file} Last Update Timestamp: ${pcap_ts}"
