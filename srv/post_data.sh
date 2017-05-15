@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WORK_DIR=/srv
-OUTLOG=/var/log
+OUTLOG=/var/log/capture
 OUTFILE_PREFIX=packet
 OUTFILE_EXT=pcap
 WLAN_ADDR_FILE=/sys/class/net/wlan1/address
@@ -19,8 +19,8 @@ fi
 
 # Read files
 # E.g.
-#   /var/log/packet_00001_20170427122557.pcap
-#   /var/log/packet_00002_20170427124633.pcap
+#   /var/log/capture/packet_00001_20170427122557.pcap
+#   /var/log/capture/packet_00002_20170427124633.pcap
 #   ...
 while :
 do
