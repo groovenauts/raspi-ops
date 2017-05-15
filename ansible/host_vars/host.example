@@ -2,4 +2,4 @@ static_ip:
   interface: eth0
   ip_address: <MY_HOST_IP>/<MASK>
   routers: <ROUTER_IP>
-  domain_name_server: <DNS_IP>
+  domain_name_servers: <DNS_IP>

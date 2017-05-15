@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INTERFACE=mon0
-OUTDIR=/var/log
+OUTDIR=/var/log/capture
 OUTFILE_PREFIX=packet
 OUTFILE_EXT=pcap
 OUTFILE=${OUTDIR}/${OUTFILE_PREFIX}.${OUTFILE_EXT}
@@ -35,9 +35,10 @@ done
 
 echo "[START] ${0#*/} (PID: $$)"
 
+sudo mkdir -p ${OUTDIR}
 sudo tshark -i ${INTERFACE} -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal -b filesize:${filesize} -b files:${files} -w ${OUTFILE} 1>/dev/null
-# => /var/log/packet_00001_20170508120443.pcap
-#    /var/log/packet_00002_20170508120629.pcap
+# => /var/log/capture/packet_00001_20170508120443.pcap
+#    /var/log/capture/packet_00002_20170508120629.pcap
 #    ...
 
 echo "[FINISH] ${0#*/} (PID: $$)"

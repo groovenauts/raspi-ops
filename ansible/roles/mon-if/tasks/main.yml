@@ -1,3 +1,23 @@
-- file: path=/srv/mon-if state=directory owner=root group=root mode=0755
-- copy: src=srv/mon-if/mon-if.sh dest=/srv/mon-if/mon-if.sh owner=root group=root mode=0700
-- cron: name="Set mon0 interface." special_time=reboot job="/srv/mon-if/mon-if.sh" 
+- file: 
+    path: /srv/mon-if
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+- copy: 
+    src: srv/mon-if/mon-if.sh
+    dest: /srv/mon-if/mon-if.sh
+    owner: root
+    group: root
+    mode: 0700
+  notify: mon-if up
+- copy: 
+    src: etc/systemd/system/mon-if.service 
+    dest: /etc/systemd/system/mon-if.service 
+    owner: root 
+    group: root 
+    mode: 0644
+  notify: mon-if up
+- systemd: 
+    name: mon-if 
+    enabled: yes

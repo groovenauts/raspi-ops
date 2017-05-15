@@ -3,8 +3,8 @@
 INTERFACE=mon0
 WLAN_ADDR_FILE=/sys/class/net/wlan1/address
 WLAN_MAC_ADDR=`cat ${WLAN_ADDR_FILE} 2> /dev/null`
-OUTDIR=/var/log
-CSV_FILE_PREFIX=capture_
+OUTDIR=./
+CSV_FILE_PREFIX=capture
 CSV_FILE=${OUTDIR}/${CSV_FILE_PREFIX}_${WLAN_MAC_ADDR}_`date +%Y%m%d%H%M%S`.csv
 
 # Parameter
