@@ -1,12 +1,12 @@
 #!/bin/bash
 
 WORK_DIR=/srv
-OUTLOG=/var/log
+OUTLOG=/var/log/capture
 OUTFILE_PREFIX=packet
 OUTFILE_EXT=pcap
 WLAN_ADDR_FILE=/sys/class/net/wlan1/address
 WLAN_MAC_ADDR=`cat ${WLAN_ADDR_FILE} 2> /dev/null`
-INTERVAL=60
+CONFIG_PATH=/srv/config.yaml
 # Temporary file
 POSTED_AT_FILE=${WORK_DIR}/post_data.tmp
 
@@ -19,13 +19,16 @@ fi
 
 # Read files
 # E.g.
-#   /var/log/packet_00001_20170427122557.pcap
-#   /var/log/packet_00002_20170427124633.pcap
+#   /var/log/capture/packet_00001_20170427122557.pcap
+#   /var/log/capture/packet_00002_20170427124633.pcap
 #   ...
 while :
 do
-  echo "------------------------------------------------------------------"
-  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 ls -1tr`; do
+  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls | wc -w`
+  if [ ${file_count} -lt 2 ]; then
+    continue
+  fi
+  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1t`; do
     # Last update timestamp
     pcap_ts=`stat -c %Y ${file}` # => 1493263557
     echo "[INFO] Processing file: ${file} Last Update Timestamp: ${pcap_ts}"
@@ -49,7 +52,7 @@ do
     fi
     # Post to Iot Borad
     echo ${pcap_ts} > ${POSTED_AT_FILE}
-    sudo python ${WORK_DIR}/post_data.py ${csv_file} ${WLAN_MAC_ADDR}
+    sudo python ${WORK_DIR}/post_data.py ${csv_file} ${WLAN_MAC_ADDR} ${CONFIG_PATH}
     if [ "$?" -eq 0 ] ; then
       # Remove pcap file
       sudo rm -f ${file}
@@ -58,9 +61,6 @@ do
     # Remove temporary file
     sudo rm -f ${csv_file}
   done
-
-  echo "Waiting for ${INTERVAL} seconds..."
-  sleep ${INTERVAL}
 done
 
 echo "[INFO] Finish ${0#*/} (PID: $$)"
