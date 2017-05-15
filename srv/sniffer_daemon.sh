@@ -18,7 +18,7 @@ echo "=================================================================="
 echo "[START] ${0#*/} (PID: $$)"
 
 countdown 30 "Start packet capture. Please wait..."
-sudo ${WORK_DIR}/capture.sh -s=256 &
+sudo ${WORK_DIR}/capture.sh -s=1024 &
 
 countdown 60 "Start send rssi from packet capture. Please wait..."
 sudo ${WORK_DIR}/post_data.sh &
