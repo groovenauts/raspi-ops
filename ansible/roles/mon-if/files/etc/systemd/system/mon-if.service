@@ -1,0 +1,10 @@
+[Unit]
+Description = monitoring interface up
+After=network.target
+
+[Service]
+ExecStart=/srv/mon-if/mon-if.sh
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
