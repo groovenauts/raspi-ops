@@ -1,5 +1,4 @@
 ---
 url: 
 api_token: 
-message_type_measure: raspi_measure
-message_type_sniffer: wifi_rssi
+message_type: wifi_rssi

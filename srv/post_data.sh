@@ -7,6 +7,7 @@ OUTFILE_EXT=pcap
 WLAN_ADDR_FILE=/sys/class/net/wlan1/address
 WLAN_MAC_ADDR=`cat ${WLAN_ADDR_FILE} 2> /dev/null`
 INTERVAL=60
+CONFIG_PATH=/srv/config.yaml
 # Temporary file
 POSTED_AT_FILE=${WORK_DIR}/post_data.tmp
 
@@ -49,7 +50,7 @@ do
     fi
     # Post to Iot Borad
     echo ${pcap_ts} > ${POSTED_AT_FILE}
-    sudo python ${WORK_DIR}/post_data.py ${csv_file} ${WLAN_MAC_ADDR}
+    sudo python ${WORK_DIR}/post_data.py ${csv_file} ${WLAN_MAC_ADDR} ${CONFIG_PATH}
     if [ "$?" -eq 0 ] ; then
       # Remove pcap file
       sudo rm -f ${file}

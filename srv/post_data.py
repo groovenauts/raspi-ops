@@ -1,17 +1,41 @@
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append('/srv')
 import re
 import yaml
 import json
 import time
-import common
 import csv
+import requests
 
-CONFIG = yaml.load(open('/srv/config.yaml', 'r'))
 NUM_PER_REQUEST = 100
 
-def main(csvfile, raspi_mac_addr):
+def http_post(url, api_token, message_type, params):
+    try:
+        data = {
+            "api_token": api_token,
+            "logs": []
+        }
+        for param in params:
+            data['logs'].append({
+                "type": message_type,
+                "attributes": param
+            })
+        r = requests.post(url, data=json.dumps(data))
+        if r.status_code == requests.codes.ok:
+            print "[SUCCESS] Sent record {0}.".format(len(params))
+            return True
+        else:
+            print "[ERROR] Status: {0}, {1}".format(r.status_code, r.text)
+            return False
+    except Exception as ex:
+        print str(ex)
+        return False
+
+def main(csvfile, raspi_mac_addr, config_path):
+    config = yaml.load(open(config_path, 'r'))
+    url = config['url']
+    api_token = config['api_token']
+    message_type = config['message_type']
     data = []
     total = 0
     f = open(csvfile, 'r')
@@ -39,7 +63,7 @@ def main(csvfile, raspi_mac_addr):
 
             size = len(data)
             if size >= NUM_PER_REQUEST:
-                ret = common.http_post(CONFIG['url'], CONFIG['api_token'], CONFIG['message_type_sniffer'], data)
+                ret = http_post(url, api_token, message_type, data)
                 if ret:
                     total += size
                 del data[:]
@@ -48,13 +72,13 @@ def main(csvfile, raspi_mac_addr):
 
     size = len(data)
     if size > 0:
-        ret = common.http_post(CONFIG['url'], CONFIG['api_token'], CONFIG['message_type_sniffer'], data)
+        ret = http_post(url, api_token, message_type, data)
         if ret:
             total += size
     f.close()
     print "[INFO] Sent log record {0}".format(total)
 
-# Usage sudo post_data.py csvfile raspi_mac_addr
+# Usage sudo post_data.py csvfile raspi_mac_addr config_path
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], sys.argv[3])
 
