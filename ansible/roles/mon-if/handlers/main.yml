@@ -1,0 +1,2 @@
+- name: exec mon-if
+  command: /srv/mon-if/mon-if.sh
