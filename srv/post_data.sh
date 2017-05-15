@@ -26,7 +26,12 @@ do
   if [ ${file_count} -lt 2 ]; then
     continue
   fi
-  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1t`; do
+  latest_file=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1t | head -1`
+  
+  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1tr`; do
+    if [ "${latest_file}" = "${file}"  ]; then
+      continue
+    fi
     csv_file=${file}.csv
     sudo tshark -r ${file} -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > ${csv_file}
     if [ ! -e "${csv_file}" ] || [ ! -s "${csv_file}" ] ; then
