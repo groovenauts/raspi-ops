@@ -1,1 +1,6 @@
-- apt: name=tshark
+- apt: 
+    name: tshark
+- lineinfile:
+    path: /usr/share/wireshark/init.lua
+    regexp: '^disable_lua ='
+    line: 'disable_lua = true'
