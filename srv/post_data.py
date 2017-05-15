@@ -6,27 +6,31 @@ import json
 import time
 import csv
 import requests
+import grequests
 
+NUM_CONNECTION = 5
 NUM_PER_REQUEST = 100
 
 def http_post(url, api_token, message_type, params):
     try:
-        data = {
-            "api_token": api_token,
-            "logs": []
-        }
-        for param in params:
-            data['logs'].append({
-                "type": message_type,
-                "attributes": param
-            })
-        r = requests.post(url, data=json.dumps(data))
-        if r.status_code == requests.codes.ok:
-            print "[SUCCESS] Sent record {0}.".format(len(params))
-            return True
-        else:
-            print "[ERROR] Status: {0}, {1}".format(r.status_code, r.text)
-            return False
+        reqs = []
+        for params2 in params:
+            for param in params2:
+                data = {
+                    "api_token": api_token,
+                    "logs": []
+                }
+                data['logs'].append({
+                    "type": message_type,
+                    "attributes": param
+                })
+                reqs.append(grequests.post(url, data=json.dumps(data)))
+        if len(reqs) > 0:
+            responses = grequests.map(reqs)
+            # for response in responses:
+            #     if response.status_code == requests.codes.ok:
+            #         print "Successfully sent log."
+        return True
     except Exception as ex:
         print str(ex)
         return False
@@ -36,8 +40,8 @@ def main(csvfile, raspi_mac_addr, config_path):
     url = config['url']
     api_token = config['api_token']
     message_type = config['message_type']
+    data_per_request = []
     data = []
-    total = 0
     f = open(csvfile, 'r')
     reader = csv.reader(f)
     header = next(reader)
@@ -51,32 +55,32 @@ def main(csvfile, raspi_mac_addr, config_path):
             if ts and src_mac and rssi and raspi_mac_addr:
                 ts = ts.split(".")[0]
                 if table.has_key(ts + "." + src_mac):
-                    print "Skip duplicate data. ts={0} mac={1}".format(ts, src_mac)
+                    # print "Skip duplicate data. ts={0} mac={1}".format(ts, src_mac)
                     continue
                 table[ts + "." + src_mac] = True
-                data.append({
+                data_per_request.append({
                     "timestamp": ts,
                     "src_mac": src_mac,
                     "rssi": rssi,
                     "raspi_mac": raspi_mac_addr,
                 })
 
-            size = len(data)
+            size = len(data_per_request)
             if size >= NUM_PER_REQUEST:
-                ret = http_post(url, api_token, message_type, data)
-                if ret:
-                    total += size
-                del data[:]
-        else:
-            print "Skip invalid data."
+                data.append(data_per_request)
+                if len(data) >= NUM_CONNECTION:
+                    http_post(url, api_token, message_type, data)
+                    del data_per_request[:]
+                    del data[:]
+        # else:
+        #     print "Skip invalid data."
 
-    size = len(data)
+    size = len(data_per_request)
     if size > 0:
-        ret = http_post(url, api_token, message_type, data)
-        if ret:
-            total += size
+        data.append(data_per_request)
+    if len(data) > 0:
+        http_post(url, api_token, message_type, data)
     f.close()
-    print "[INFO] Sent log record {0}".format(total)
 
 # Usage sudo post_data.py csvfile raspi_mac_addr config_path
 if __name__ == '__main__':
