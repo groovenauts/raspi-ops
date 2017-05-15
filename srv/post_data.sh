@@ -6,7 +6,6 @@ OUTFILE_PREFIX=packet
 OUTFILE_EXT=pcap
 WLAN_ADDR_FILE=/sys/class/net/wlan1/address
 WLAN_MAC_ADDR=`cat ${WLAN_ADDR_FILE} 2> /dev/null`
-INTERVAL=60
 CONFIG_PATH=/srv/config.yaml
 # Temporary file
 POSTED_AT_FILE=${WORK_DIR}/post_data.tmp
@@ -26,6 +25,11 @@ fi
 while :
 do
   echo "------------------------------------------------------------------"
+  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 ls | wc -w`
+  if [ ${file_count} -lt 2 ]; then
+    echo "[DEBUG] The number of files is ${file_count}, less than 2"
+    continue
+  fi
   for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 ls -1tr`; do
     # Last update timestamp
     pcap_ts=`stat -c %Y ${file}` # => 1493263557
@@ -59,9 +63,6 @@ do
     # Remove temporary file
     sudo rm -f ${csv_file}
   done
-
-  echo "Waiting for ${INTERVAL} seconds..."
-  sleep ${INTERVAL}
 done
 
 echo "[INFO] Finish ${0#*/} (PID: $$)"
