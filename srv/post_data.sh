@@ -15,41 +15,6 @@ if [ -z "${WLAN_MAC_ADDR}" ] ; then
   exit 1
 fi
 
-# Read files
-# E.g.
-#   /var/log/capture/packet_00001_20170427122557.pcap
-#   /var/log/capture/packet_00002_20170427124633.pcap
-#   ...
-while :
-do
-  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls | wc -w`
-  if [ ${file_count} -lt 2 ]; then
-    continue
-  fi
-  latest_file=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1t | head -1`
-  
-  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1tr`; do
-    if [ "${latest_file}" = "${file}"  ]; then
-      continue
-    fi
-    csv_file=${file}.csv
-    sudo tshark -r ${file} -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > ${csv_file}
-    if [ ! -e "${csv_file}" ] || [ ! -s "${csv_file}" ] ; then
-      # Remove temporary file
-      sudo rm -f "${csv_file}"
-      echo "    [ERROR] Failed convert packet capture file using 'tshark'."
-      continue
-    fi
-    # Post to Iot Borad
-    sudo python ${WORK_DIR}/post_data.py ${csv_file} ${WLAN_MAC_ADDR} ${CONFIG_PATH}
-    if [ "$?" -eq 0 ] ; then
-      # Remove pcap file
-      sudo rm -f ${file}
-      echo "    [SUCCESS] ${file}"
-    fi
-    # Remove temporary file
-    sudo rm -f ${csv_file}
-  done
-done
+sudo python ${WORK_DIR}/post_data.py ${OUTLOG} ${WLAN_MAC_ADDR} ${CONFIG_PATH}
 
 echo "[INFO] Finish ${0#*/} (PID: $$)"
