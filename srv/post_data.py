@@ -7,6 +7,8 @@ import time
 import csv
 import requests
 import grequests
+import glob
+import subprocess
 
 NUM_CONNECTION = 5
 NUM_PER_REQUEST = 100
@@ -35,11 +37,7 @@ def http_post(url, api_token, message_type, params):
         print str(ex)
         return False
 
-def main(csvfile, raspi_mac_addr, config_path):
-    config = yaml.load(open(config_path, 'r'))
-    url = config['url']
-    api_token = config['api_token']
-    message_type = config['message_type']
+def read_csvfile(csv_file, raspi_mac_addr, url, api_token, message_type):
     data_per_request = []
     data = []
     f = open(csvfile, 'r')
@@ -82,7 +80,26 @@ def main(csvfile, raspi_mac_addr, config_path):
         http_post(url, api_token, message_type, data)
     f.close()
 
-# Usage sudo post_data.py csvfile raspi_mac_addr config_path
+def main(target_dir, raspi_mac_addr, config_path):
+    config = yaml.load(open(config_path, 'r'))
+    url = config['url']
+    api_token = config['api_token']
+    message_type = config['message_type']
+
+    # process pcap files
+    while True:
+        files = glob.glob(target_dir + "/packet_*.pcap")
+        if len(files) <= 1:
+            time.sleep(1.0)
+            continue
+        files.sort()
+        for f in files:
+            csv_file = f + ".csv"
+            subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
+            read_csvfile(csv_file, raspi_mac_addr, url, api_token, message_type)
+
+
+# Usage sudo post_data.py target_dir raspi_mac_addr config_path
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3])
 
