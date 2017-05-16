@@ -26,6 +26,13 @@
     mode: 0644
   notify: restart post_data
 - copy:
+    src: srv/post_data/post_data.py
+    dest: /srv/post_data/post_data.py
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart post_data
+- copy:
     src: etc/systemd/system/post_data.service
     dest: /etc/systemd/system/post_data.service
     owner: root
