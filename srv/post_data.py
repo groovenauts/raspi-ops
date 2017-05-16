@@ -11,9 +11,17 @@ import glob
 import subprocess
 import Queue
 import threading
+import signal
 
 NUM_CONNECTION = 5
 NUM_PER_REQUEST = 400
+
+runningFlag = True
+def interrupt(sig, stack):
+    runningFlag = False
+
+signal.signal(signal.SIGINT, interrupt)
+signal.signal(signal.SIGTERM, interrupt)
 
 def http_post(queue, url, api_token, message_type):
     while True:
@@ -100,7 +108,7 @@ def main(target_dir, raspi_mac_addr, config_path):
         threading.Thread(target=http_post, args=(request_queue, url, api_token, message_type)).start()
 
     # process pcap files
-    while True:
+    while runningFlag:
         files = glob.glob(target_dir + "/packet_*.pcap")
         if len(files) <= 1:
             time.sleep(1.0)
