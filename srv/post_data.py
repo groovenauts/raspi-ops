@@ -108,22 +108,25 @@ def main(target_dir, raspi_mac_addr, config_path):
         threading.Thread(target=http_post, args=(request_queue, url, api_token, message_type)).start()
 
     # process pcap files
-    while runningFlag:
-        files = glob.glob(target_dir + "/packet_*.pcap")
-        if len(files) <= 1:
-            time.sleep(1.0)
-            continue
-        files.sort()
-        files.pop()
-        for f in files:
-            csv_file = f + ".csv"
-            print("Dumping {} -> {}".format(f, csv_file))
-            subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
-            read_csvfile(request_queue, csv_file, raspi_mac_addr, url, api_token, message_type)
-            os.remove(csv_file)
-            os.remove(f)
-
-    request_queue.join()
+    try:
+        while runningFlag:
+            files = glob.glob(target_dir + "/packet_*.pcap")
+            if len(files) <= 1:
+                time.sleep(1.0)
+                continue
+            files.sort()
+            files.pop()
+            for f in files:
+                csv_file = f + ".csv"
+                print("Dumping {} -> {}".format(f, csv_file))
+                subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
+                read_csvfile(request_queue, csv_file, raspi_mac_addr, url, api_token, message_type)
+                os.remove(csv_file)
+                os.remove(f)
+    finally:
+        for i in range(NUM_CONNECTION):
+            request_queue.put(None)
+        request_queue.join()
 
 
 # Usage sudo post_data.py target_dir raspi_mac_addr config_path
