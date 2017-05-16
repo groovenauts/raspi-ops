@@ -82,6 +82,7 @@ def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
     if size > 0:
         push_time = time.time()
         queue.put(data_per_request)
+        pushed_time = time.time()
         wait_duration = pushed_time - push_time
         if wait_duration > 10:
             print("Request queue push wait {} secs.".format(wait_duration))
