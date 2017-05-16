@@ -10,7 +10,6 @@
     - python-pip
     - pyyaml
     - requests
-    - grequests
     - mon-if
     - capture
     - { role: static_ip, tags: [ 'static_ip' ] }

@@ -1,3 +1,0 @@
-- apt: name=libyaml-dev
-- apt: name=libpython2.7-dev
-- pip: name=grequests version={{ grequests.version }}
