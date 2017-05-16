@@ -19,8 +19,8 @@
     mode: 0644
   notify: restart post_data
 - template:
-    src: srv/post_data/post_data.yml.j2
-    dest: /srv/post_data/post_data.yml
+    src: srv/post_data/config.yaml.j2
+    dest: /srv/post_data/config_yaml
     owner: root
     group: root
     mode: 0644
