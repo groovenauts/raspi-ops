@@ -85,7 +85,7 @@ def main(target_dir, raspi_mac_addr, config_path):
     request_queue = Queue.Queue(maxsize=1)
 
     for i in range(NUM_CONNECTION):
-        threading.Thread(target=post_request, args=(request_queue, url, api_token, message_type)).start()
+        threading.Thread(target=http_post, args=(request_queue, url, api_token, message_type)).start()
 
     # process pcap files
     while True:
