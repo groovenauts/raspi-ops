@@ -94,6 +94,7 @@ def main(target_dir, raspi_mac_addr, config_path):
             time.sleep(1.0)
             continue
         files.sort()
+        files.pop()
         for f in files:
             csv_file = f + ".csv"
             subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
