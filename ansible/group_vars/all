@@ -1,8 +1,0 @@
-zabbix_agent:
-  server: "zabbix-proxy"
-pyyaml:
-  version: 3.12
-requests:
-  version: 2.14.1
-grequests:
-  version: 0.3.0

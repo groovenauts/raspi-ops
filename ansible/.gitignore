@@ -1,4 +1,4 @@
-group_vers/all
+group_vars/all
 hosts*
 host_vars/*
 !host_vars/host.example
