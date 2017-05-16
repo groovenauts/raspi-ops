@@ -18,6 +18,8 @@ NUM_PER_REQUEST = 400
 
 runningFlag = True
 def interrupt(sig, stack):
+    global runningFlag
+    print("Signal received.")
     runningFlag = False
 
 signal.signal(signal.SIGINT, interrupt)
@@ -97,6 +99,8 @@ def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
     f.close()
 
 def main(target_dir, raspi_mac_addr, config_path):
+    global runningFlag
+
     config = yaml.load(open(config_path, 'r'))
     url = config['url']
     api_token = config['api_token']
