@@ -22,13 +22,13 @@ fi
 #   ...
 while :
 do
-  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -mtime -1 -type f -print0 | xargs -0 --no-run-if-empty ls | wc -w`
+  file_count=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls | wc -w`
   if [ ${file_count} -lt 2 ]; then
     continue
   fi
-  latest_file=`\find ${OUTLOG} -name 'packet*.pcap' -mtime -1 -type f -print0 | xargs -0 --no-run-if-empty ls -1t | head -1`
+  latest_file=`\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1t | head -1`
   
-  for file in `\find ${OUTLOG} -name 'packet*.pcap' -mtime -1 -type f -print0 | xargs -0 --no-run-if-empty ls -1tr`; do
+  for file in `\find ${OUTLOG} -name 'packet*.pcap' -type f -print0 | xargs -0 --no-run-if-empty ls -1tr`; do
     if [ "${latest_file}" = "${file}"  ]; then
       continue
     fi
