@@ -1,0 +1,10 @@
+- file: path=/srv/post_data state=directory owner=root group=root mode=0755
+- copy: src=srv/post_data/post_data.sh dest=/srv/post_data/post_data.sh owner=root group=root mode=0755
+  notify: restart post_data
+- copy: src=srv/post_data/post_data.conf dest=/srv/post_data/post_data.conf owner=root group=root mode=0644
+  notify: restart post_data
+- template: src=srv/post_data/post_data.yml.j2 dest=/srv/post_data/post_data.yml owner=root group=root mode=0644
+  notify: restart post_data
+- copy: src=etc/systemd/system/post_data.service dest=/etc/systemd/system/post_data.service owner=root group=root mode=0755
+  notify: restart post_data
+- systemd: name=post_data enabled=yes
