@@ -11,7 +11,7 @@ import glob
 import subprocess
 
 NUM_CONNECTION = 5
-NUM_PER_REQUEST = 100
+NUM_PER_REQUEST = 400
 
 def http_post(url, api_token, message_type, params):
     try:
