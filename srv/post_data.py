@@ -30,11 +30,13 @@ def http_post(queue, url, api_token, message_type):
                     "type": message_type,
                     "attributes": param
                 })
+            start_time = time.time()
             r = requests.post(url, data=json.dumps(data))
+            finish_time = time.time()
             if r.status_code == requests.codes.ok:
-                print "[SUCCESS] Sent record {0}.".format(len(params))
+                print "[SUCCESS] Sent record {0} in {1} secs.".format(len(params), finish_time - start_time)
             else:
-                print "[ERROR] Status: {0}, {1}".format(r.status_code, r.text)
+                print "[ERROR] Status: {0}, {1} in {2} secs".format(r.status_code, r.text, finish_time - start_time)
             queue.task_done()
         except Exception as ex:
             print str(ex)
@@ -66,14 +68,23 @@ def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
 
             size = len(data_per_request)
             if size >= NUM_PER_REQUEST:
+                push_time = time.time()
                 queue.put(data_per_request)
                 data_per_request = []
+                pushed_time = time.time()
+                wait_duration = pushed_time - push_time
+                if wait_duration > 10:
+                    print("Request queue push wait {} secs.".format(wait_duration))
         # else:
         #     print "Skip invalid data."
 
     size = len(data_per_request)
     if size > 0:
+        push_time = time.time()
         queue.put(data_per_request)
+        wait_duration = pushed_time - push_time
+        if wait_duration > 10:
+            print("Request queue push wait {} secs.".format(wait_duration))
     f.close()
 
 def main(target_dir, raspi_mac_addr, config_path):
@@ -97,6 +108,7 @@ def main(target_dir, raspi_mac_addr, config_path):
         files.pop()
         for f in files:
             csv_file = f + ".csv"
+            print("Dumping {} -> {}".format(f, csv_file))
             subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
             read_csvfile(request_queue, csv_file, raspi_mac_addr, url, api_token, message_type)
             os.remove(csv_file)
