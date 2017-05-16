@@ -128,8 +128,8 @@ def main(target_dir, raspi_mac_addr, config_path):
                 read_csvfile(request_queue, csv_file, raspi_mac_addr, url, api_token, message_type)
                 os.remove(csv_file)
                 os.remove(f)
-               if not(runningFlag):
-                   break
+                if not(runningFlag):
+                    break
     finally:
         print("==== Shutting down threads. ====")
         for i in range(NUM_CONNECTION):
