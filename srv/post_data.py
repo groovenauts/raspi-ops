@@ -40,7 +40,7 @@ def http_post(url, api_token, message_type, params):
 def read_csvfile(csv_file, raspi_mac_addr, url, api_token, message_type):
     data_per_request = []
     data = []
-    f = open(csvfile, 'r')
+    f = open(csv_file, 'r')
     reader = csv.reader(f)
     header = next(reader)
     row = [ v for v in reader]
