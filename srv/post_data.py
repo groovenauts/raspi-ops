@@ -6,7 +6,6 @@ import json
 import time
 import csv
 import requests
-import grequests
 import glob
 import subprocess
 
@@ -26,12 +25,13 @@ def http_post(url, api_token, message_type, params):
                     "type": message_type,
                     "attributes": param
                 })
-                reqs.append(grequests.post(url, data=json.dumps(data)))
-        if len(reqs) > 0:
-            responses = grequests.map(reqs)
-            # for response in responses:
-            #     if response.status_code == requests.codes.ok:
-            #         print "Successfully sent log."
+                r = requests.post(url, data=json.dumps(data))
+                if r.status_code == requests.codes.ok:
+                    print "[SUCCESS] Sent record {0}.".format(len(params))
+                    return True
+                else:
+                    print "[ERROR] Status: {0}, {1}".format(r.status_code, r.text)
+                    return False
         return True
     except Exception as ex:
         print str(ex)
