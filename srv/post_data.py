@@ -9,44 +9,44 @@ import csv
 import requests
 import glob
 import subprocess
+import Queue
+import threading
 
 NUM_CONNECTION = 5
 NUM_PER_REQUEST = 400
 
-def http_post(url, api_token, message_type, params):
-    try:
-        reqs = []
-        for params2 in params:
-            for param in params2:
-                data = {
-                    "api_token": api_token,
-                    "logs": []
-                }
+def http_post(queue, url, api_token, message_type):
+    while True:
+        try:
+            params = queue.get()
+            if params is None:
+                break
+            data = {
+                "api_token": api_token,
+                "logs": []
+            }
+            for param in params:
                 data['logs'].append({
                     "type": message_type,
                     "attributes": param
                 })
-                r = requests.post(url, data=json.dumps(data))
-                if r.status_code == requests.codes.ok:
-                    print "[SUCCESS] Sent record {0}.".format(len(params))
-                    return True
-                else:
-                    print "[ERROR] Status: {0}, {1}".format(r.status_code, r.text)
-                    return False
-        return True
-    except Exception as ex:
-        print str(ex)
-        return False
+            r = requests.post(url, data=json.dumps(data))
+            if r.status_code == requests.codes.ok:
+                print "[SUCCESS] Sent record {0}.".format(len(params))
+            else:
+                print "[ERROR] Status: {0}, {1}".format(r.status_code, r.text)
+            queue.task_done()
+        except Exception as ex:
+            print str(ex)
 
-def read_csvfile(csv_file, raspi_mac_addr, url, api_token, message_type):
+def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
     data_per_request = []
     data = []
     f = open(csv_file, 'r')
     reader = csv.reader(f)
     header = next(reader)
-    row = [ v for v in reader]
     table = {}
-    for o in row:
+    for o in reader:
         if len(o) == 3:
             ts = o[0]
             src_mac = o[1]
@@ -66,19 +66,14 @@ def read_csvfile(csv_file, raspi_mac_addr, url, api_token, message_type):
 
             size = len(data_per_request)
             if size >= NUM_PER_REQUEST:
-                data.append(data_per_request)
-                if len(data) >= NUM_CONNECTION:
-                    http_post(url, api_token, message_type, data)
-                    del data_per_request[:]
-                    del data[:]
+                queue.put(data_per_request)
+                data_per_request = []
         # else:
         #     print "Skip invalid data."
 
     size = len(data_per_request)
     if size > 0:
-        data.append(data_per_request)
-    if len(data) > 0:
-        http_post(url, api_token, message_type, data)
+        queue.put(data_per_request)
     f.close()
 
 def main(target_dir, raspi_mac_addr, config_path):
@@ -86,6 +81,11 @@ def main(target_dir, raspi_mac_addr, config_path):
     url = config['url']
     api_token = config['api_token']
     message_type = config['message_type']
+
+    request_queue = Queue.Queue(maxsize=1)
+
+    for i in range(NUM_CONNECTION):
+        threading.Thread(target=post_request, args=(request_queue, url, api_token, message_type)).start()
 
     # process pcap files
     while True:
@@ -97,9 +97,11 @@ def main(target_dir, raspi_mac_addr, config_path):
         for f in files:
             csv_file = f + ".csv"
             subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
-            read_csvfile(csv_file, raspi_mac_addr, url, api_token, message_type)
+            read_csvfile(request_queue, csv_file, raspi_mac_addr, url, api_token, message_type)
             os.remove(csv_file)
             os.remove(f)
+
+    request_queue.join()
 
 
 # Usage sudo post_data.py target_dir raspi_mac_addr config_path
