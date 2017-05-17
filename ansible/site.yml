@@ -12,4 +12,5 @@
     - requests
     - mon-if
     - capture
+    - { role: post_data, tags: [ 'post_data' ] }
     - { role: static_ip, tags: [ 'static_ip' ] }
