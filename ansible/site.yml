@@ -5,12 +5,12 @@
     - ntp
     - timezone
     - git
-    - zabbix-agent
     - tshark
     - python-pip
     - pyyaml
     - requests
     - mon-if
     - capture
+    - { role: zabbix-agent, tags: [ 'zabbix-agent' ] }
     - { role: post_data, tags: [ 'post_data' ] }
     - { role: static_ip, tags: [ 'static_ip' ] }
