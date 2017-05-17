@@ -1,5 +1,6 @@
 zabbix_agent:
-  server: "MY ZABBIX SERVER"
+  server_hostname: "MY ZABBIX SERVER"
+	server_ip_address: "MY ZABBIX SERVER IP"
 pyyaml:
   version: 3.11
 requests:
