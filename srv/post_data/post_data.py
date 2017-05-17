@@ -124,7 +124,7 @@ def main(target_dir, raspi_mac_addr, config_path):
             for f in files:
                 csv_file = f + ".csv"
                 print("Dumping {} -> {}".format(f, csv_file))
-                subprocess.call("sudo tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
+                subprocess.call("tshark -r '{}' -T fields -E separator=',' -e frame.time_epoch -e wlan.sa -e radiotap.dbm_antsignal > '{}'".format(f, csv_file), shell=True)
                 read_csvfile(request_queue, csv_file, raspi_mac_addr, url, api_token, message_type)
                 os.remove(csv_file)
                 os.remove(f)
@@ -137,7 +137,7 @@ def main(target_dir, raspi_mac_addr, config_path):
         request_queue.join()
 
 
-# Usage sudo post_data.py target_dir raspi_mac_addr config_path
+# Usage post_data.py target_dir raspi_mac_addr config_path
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3])
 
