@@ -1,0 +1,4 @@
+---
+url: <YOUR APP URL>
+api_token: <YOUR APP TOKEN>
+message_type: wifi_rssi
