@@ -25,3 +25,10 @@
     regexp: "{{ zabbix_agent.server_hostname }}$"
     line: "{{ zabbix_agent.server_ip_address }}\t{{ zabbix_agent.server_hostname }}"
   notify: restart zabbix-agent
+- copy:
+    src: etc/zabbix/zabbix_agentd.conf.d/
+    dest: /etc/zabbix/zabbix_agentd.conf.d/
+    owner: zabbix
+    group: zabbix
+    mode: 0644
+  notify: restart zabbix-agent
