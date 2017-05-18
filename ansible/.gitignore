@@ -1,4 +1,6 @@
-group_vars/all
+group_vars/*
+!host_vars/all.example
 hosts*
 host_vars/*
 !host_vars/host.example
+site.retry
