@@ -18,7 +18,11 @@ OptionParser.new do |opt|
     confing[:interval] = int
   end
   opt.parse!
-  config_file, = ARGV
+  if ARGV[0]
+    config_file = ARGV[0]
+  else
+    config_file = "./config.yml"
+  end
   d = YAML.load(File.read(config_file))
   config[:mac_addresses] = d["mac_addresses"]
 end
