@@ -1,7 +1,7 @@
 #!/bin/bash
 
 POST_DATA_PY="${WORK_DIR}/post_data.py"
-WLAN_MAC_ADDR=$(cat "${WLAN_ADDR_FILE}" 2> /dev/null)
+HOST_NAME=$(hostname)
 
 if [ -z "${POST_DATA_PY}" ]; then
   echo "Not found ${POST_DATA_PY}"
@@ -18,9 +18,9 @@ if [ -z "${CONFIG_PATH}" ]; then
   exit 1
 fi
 
-if [ -z "${WLAN_MAC_ADDR}" ] ; then
-  echo "Not found ${WLAN_ADDR_FILE}"
+if [ -z "${HOST_NAME}" ] ; then
+  echo "Not found ${HOST_NAME}"
   exit 1
 fi
 
-python "${POST_DATA_PY}" "${OUTLOG}" "${WLAN_MAC_ADDR}" "${CONFIG_PATH}"
+python "${POST_DATA_PY}" "${OUTLOG}" "${HOST_NAME}" "${CONFIG_PATH}"
