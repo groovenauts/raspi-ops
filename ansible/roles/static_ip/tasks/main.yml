@@ -6,3 +6,9 @@
   notify: reboot os
 - lineinfile: dest=/etc/dhcpcd.conf regexp="^static domain_name_servers=" line="static domain_name_servers={{ static_ip.domain_name_servers }}"
   notify: reboot os
+- sysctl:
+    name: net.ipv6.conf.all.disable_ipv6
+    value: 1
+    state: present
+    reload: no
+  notify: reboot os
