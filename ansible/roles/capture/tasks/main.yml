@@ -1,9 +1,42 @@
-- file: path=/srv/capture state=directory owner=root group=root mode=0755
-- file: path=/var/log/capture state=directory owner=root group=root mode=0755
-- copy: src=srv/capture/capture.sh dest=/srv/capture/capture.sh owner=root group=root mode=0755
+- user:
+    name: capture
+    group: capture
+    groups: capture,wireshark
+    shell: /bin/false
+    home: /var/run/capture
+- file: 
+    path: /srv/capture
+    state: directory
+    owner: capture
+    group: capture
+    mode: 0755
+- file:
+    path: /var/log/capture
+    state: directory
+    owner: capture
+    group: wireshark
+    mode: 0775
+- copy:
+    src: srv/capture/capture.sh
+    dest: /srv/capture/capture.sh
+    owner: capture
+    group: capture
+    mode: 0755
   notify: restart capture
-- copy: src=srv/capture/capture.conf dest=/srv/capture/capture.conf owner=root group=root mode=0644
+- copy:
+    src: srv/capture/capture.conf
+    dest: /srv/capture/capture.conf
+    owner: capture
+    group: capture
+    mode: 0644
   notify: restart capture
-- copy: src=etc/systemd/system/capture.service dest=/etc/systemd/system/capture.service owner=root group=root mode=0755
+- copy: 
+    src: etc/systemd/system/capture.service
+    dest: /etc/systemd/system/capture.service
+    owner: root
+    group: root
+    mode: 0644
   notify: restart capture
-- systemd: name=capture enabled=yes
+- systemd:
+    name: capture
+    enabled: yes

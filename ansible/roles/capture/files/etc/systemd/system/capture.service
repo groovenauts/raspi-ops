@@ -6,9 +6,12 @@ After=mon-if.service
 EnvironmentFile=/srv/capture/capture.conf
 ExecStart=/srv/capture/capture.sh
 ExecReload=/bin/kill -HUP $MAINPID
-KillMode=process
+ExecStop=/bin/kill $MAINPID
+KillMode=control-group
 Restart=on-failure
 Type=simple
+User=capture
+Group=wireshark
 
 [Install]
 WantedBy=multi-user.target
