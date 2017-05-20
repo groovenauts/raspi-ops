@@ -4,3 +4,16 @@
     path: /usr/share/wireshark/init.lua
     regexp: '^disable_lua ='
     line: 'disable_lua = true'
+- group:
+    name: wireshark
+    state: present
+- file:
+    path: /usr/bin/dumpcap
+    group: wireshark
+    mode: 0750
+- capabilities:
+    path: /usr/bin/dumpcap
+    capability:
+      - cap_net_raw
+      - cap_net_admin=eip
+    state: present
