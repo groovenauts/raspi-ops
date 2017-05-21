@@ -10,7 +10,7 @@
 - file:
     path: /usr/bin/dumpcap
     group: wireshark
-    mode: 0750
+    mode: 4750
 - capabilities:
     path: /usr/bin/dumpcap
     capability:
