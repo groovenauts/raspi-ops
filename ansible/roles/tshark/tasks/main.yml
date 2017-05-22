@@ -16,5 +16,5 @@
     capability: "{{ item.capability }}"
     state: present
   with_items:
-    - { capability: 'cap_net_raw' }
-    - { capability: 'cap_net_admin=eip' }
+    - { capability: 'cap_net_raw+eip' }
+    - { capability: 'cap_net_admin+eip' }
