@@ -1,7 +1,6 @@
 - user:
     name: post_data
-    group: post_data
-    groups: post_data,wireshark
+    groups: wireshark
     shell: /bin/false
     home: /var/run/post_data
 - file:

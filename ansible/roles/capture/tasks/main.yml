@@ -1,7 +1,6 @@
 - user:
     name: capture
-    group: capture
-    groups: capture,wireshark
+    groups: wireshark
     shell: /bin/false
     home: /var/run/capture
 - file: 
