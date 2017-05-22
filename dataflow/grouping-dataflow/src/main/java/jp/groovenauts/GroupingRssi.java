@@ -78,7 +78,7 @@ public class GroupingRssi {
    * of-line. This DoFn decode JSON into rssi data; we pass it to a ParDo in the
    * pipeline.
    */
-  static class DecodeJsonFn extends DoFn<String, KV<Integer, TableRow>> {
+  static class DecodeJsonFn extends DoFn<String, KV<String, TableRow>> {
     @Override
     public void processElement(ProcessContext c) {
       JSONObject json = new JSONObject(c.element());
@@ -90,7 +90,8 @@ public class GroupingRssi {
           .set("raspi_mac", obj.get("raspi_mac"))
           .set("rssi", obj.get("rssi"));
         Integer tw = obj.getInt("timestamp") / 10;
-        c.output(KV.of(tw, row));
+        String key = String.valueOf(tw) + "_" + obj.get("src_mac") + "_" + obj.get("raspi_mac");
+        c.output(KV.of(key, row));
       }
     }
   }
@@ -100,29 +101,29 @@ public class GroupingRssi {
    * decoded data
    *
    */
-  public static class DecodeJson extends PTransform<PCollection<String>, PCollection<KV<Integer,TableRow>>> {
+  public static class DecodeJson extends PTransform<PCollection<String>, PCollection<KV<String,TableRow>>> {
     @Override
-    public PCollection<KV<Integer,TableRow>> apply(PCollection<String> lines) {
+    public PCollection<KV<String,TableRow>> apply(PCollection<String> lines) {
 
       // Convert lines of text into individual words.
-      PCollection<KV<Integer,TableRow>> rows = lines.apply(
+      PCollection<KV<String,TableRow>> rows = lines.apply(
           ParDo.of(new DecodeJsonFn()));
 
       return rows;
     }
   }
 
-  static class EncodeJsonFn extends DoFn<KV<Integer,TableRow>, String> {
+  static class EncodeJsonFn extends DoFn<KV<String,TableRow>, String> {
     @Override
     public void processElement(ProcessContext c) {
-      KV<Integer, TableRow> row = c.element();
-      c.output(String.valueOf(row.getKey()) + " " + (String)row.getValue().get("src_mac") + " " + (String)row.getValue().get("raspi_mac"));
+      KV<String, TableRow> row = c.element();
+      c.output(row.getKey() + " " + String.valueOf(row.getValue().get("rssi")));
     }
   }
 
-  public static class EncodeJson extends PTransform<PCollection<KV<Integer,TableRow>>, PCollection<String>> {
+  public static class EncodeJson extends PTransform<PCollection<KV<String,TableRow>>, PCollection<String>> {
     @Override
-    public PCollection<String> apply(PCollection<KV<Integer,TableRow>> rows) {
+    public PCollection<String> apply(PCollection<KV<String,TableRow>> rows) {
 
       // Convert lines of text into individual words.
       PCollection<String> words = rows.apply(
@@ -180,7 +181,7 @@ public class GroupingRssi {
       .apply(Window.<String>into(
         FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))));
 
-    PCollection<KV<Integer, TableRow>> data = windowedJson.apply(new GroupingRssi.DecodeJson());
+    PCollection<KV<String, TableRow>> data = windowedJson.apply(new GroupingRssi.DecodeJson());
 
     data.apply(new GroupingRssi.EncodeJson())
         .apply(PubsubIO.Write.topic(options.getOutputTopic()));
