@@ -13,7 +13,8 @@
     mode: 4750
 - capabilities:
     path: /usr/bin/dumpcap
-    capability:
-      - cap_net_raw
-      - cap_net_admin=eip
+    capability: "{{ item.capability }}"
     state: present
+  with_items:
+    - { capability: 'cap_net_raw' }
+    - { capability: 'cap_net_admin=eip' }
