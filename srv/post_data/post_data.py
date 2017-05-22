@@ -15,6 +15,9 @@ import signal
 
 NUM_CONNECTION = 5
 NUM_PER_REQUEST = 400
+REGEX_TS = r"^[0-9]+.[0-9]+$"
+REGEX_MACADDR = r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+REGEX_RSSI = r"^-?[0-9]+$"
 
 runningFlag = True
 def interrupt(sig, stack):
@@ -63,7 +66,8 @@ def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
             ts = o[0]
             src_mac = o[1]
             rssi = o[2]
-            if ts and src_mac and rssi and raspi_mac_addr:
+            if ts and src_mac and rssi and raspi_mac_addr \
+                and re.match(REGEX_TS, ts) and re.match(REGEX_MACADDR, src_mac) and re.match(REGEX_RSSI, rssi):
                 ts = ts.split(".")[0]
                 if table.has_key(ts + "." + src_mac):
                     # print "Skip duplicate data. ts={0} mac={1}".format(ts, src_mac)
