@@ -57,7 +57,6 @@ def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
     data = []
     f = open(csv_file, 'r')
     reader = csv.reader(f)
-    header = next(reader)
     table = {}
     for o in reader:
         if len(o) == 3:
