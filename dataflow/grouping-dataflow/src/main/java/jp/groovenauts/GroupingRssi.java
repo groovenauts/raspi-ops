@@ -35,6 +35,9 @@ import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.transforms.PTransform;
 import com.google.cloud.dataflow.sdk.transforms.windowing.FixedWindows;
 import com.google.cloud.dataflow.sdk.transforms.windowing.Window;
+import com.google.cloud.dataflow.sdk.transforms.GroupByKey;
+import com.google.cloud.dataflow.sdk.transforms.GroupByKey.GroupAlsoByWindow;
+import com.google.cloud.dataflow.sdk.transforms.Max;
 import com.google.cloud.dataflow.sdk.values.KV;
 import com.google.cloud.dataflow.sdk.values.PCollection;
 
@@ -48,7 +51,7 @@ import org.json.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Iterator;
 
 /**
  * <p>To execute this pipeline locally, specify general pipeline configuration:
@@ -78,20 +81,15 @@ public class GroupingRssi {
    * of-line. This DoFn decode JSON into rssi data; we pass it to a ParDo in the
    * pipeline.
    */
-  static class DecodeJsonFn extends DoFn<String, KV<String, TableRow>> {
+  static class DecodeJsonFn extends DoFn<String, KV<String, Double>> {
     @Override
     public void processElement(ProcessContext c) {
       JSONObject json = new JSONObject(c.element());
       if (json.get("type").equals("wifi_rssi")) {
         JSONObject obj = new JSONObject(json.get("attributes").toString());
-        TableRow row = new TableRow()
-          .set("timestamp", obj.get("timestamp"))
-          .set("src_mac", obj.get("src_mac"))
-          .set("raspi_mac", obj.get("raspi_mac"))
-          .set("rssi", obj.get("rssi"));
         Integer tw = obj.getInt("timestamp") / 10;
-        String key = String.valueOf(tw) + "_" + obj.get("src_mac") + "_" + obj.get("raspi_mac");
-        c.output(KV.of(key, row));
+        String key = String.valueOf(tw) + "%" + obj.get("src_mac") + "_" + obj.get("raspi_mac");
+        c.output(KV.of(key, obj.getDouble("rssi")));
       }
     }
   }
@@ -101,35 +99,40 @@ public class GroupingRssi {
    * decoded data
    *
    */
-  public static class DecodeJson extends PTransform<PCollection<String>, PCollection<KV<String,TableRow>>> {
+  public static class DecodeJson extends PTransform<PCollection<String>, PCollection<KV<String,Double>>> {
     @Override
-    public PCollection<KV<String,TableRow>> apply(PCollection<String> lines) {
+    public PCollection<KV<String,Double>> apply(PCollection<String> lines) {
 
       // Convert lines of text into individual words.
-      PCollection<KV<String,TableRow>> rows = lines.apply(
+      PCollection<KV<String,Double>> rows = lines.apply(
           ParDo.of(new DecodeJsonFn()));
 
       return rows;
     }
   }
 
-  static class EncodeJsonFn extends DoFn<KV<String,TableRow>, String> {
+  public static class PairingMonitorMacFn extends DoFn<KV<String, Double>, KV<String, KV<String, Double>>> {
     @Override
     public void processElement(ProcessContext c) {
-      KV<String, TableRow> row = c.element();
-      c.output(row.getKey() + " " + String.valueOf(row.getValue().get("rssi")));
+      KV<String, Double> row = c.element();
+      String[] ary = row.getKey().split("_");
+      String newkey = ary[0];
+      String raspiMac = ary[1];
+      Double rssi = row.getValue();
+      c.output(KV.of(newkey, KV.of(raspiMac, rssi)));
     }
   }
 
-  public static class EncodeJson extends PTransform<PCollection<KV<String,TableRow>>, PCollection<String>> {
+  static class EncodeJsonFn extends DoFn<KV<String,Iterable<KV<String, Double>>>, String> {
     @Override
-    public PCollection<String> apply(PCollection<KV<String,TableRow>> rows) {
-
-      // Convert lines of text into individual words.
-      PCollection<String> words = rows.apply(
-          ParDo.of(new EncodeJsonFn()));
-
-      return words;
+    public void processElement(ProcessContext c) {
+      KV<String, Iterable<KV<String, Double>>> row = c.element();
+      String buf = "";
+      for (Iterator<KV<String, Double>> i = row.getValue().iterator(); i.hasNext();){
+        KV<String, Double> e = i.next();
+        buf += e.getKey() + ":" + String.valueOf(e.getValue()) + " ";
+      }
+      c.output(row.getKey() + " " + buf);
     }
   }
 
@@ -171,20 +174,13 @@ public class GroupingRssi {
     input = pipeline
         .apply(PubsubIO.Read.topic(options.getPubsubTopic()));
 
-    /**
-     * Concept #4: Window into fixed windows. The fixed window size for this example defaults to 1
-     * minute (you can change this with a command-line option). See the documentation for more
-     * information on how fixed windows work, and for information on the other types of windowing
-     * available (e.g., sliding windows).
-     */
-    PCollection<String> windowedJson = input
-      .apply(Window.<String>into(
-        FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))));
-
-    PCollection<KV<String, TableRow>> data = windowedJson.apply(new GroupingRssi.DecodeJson());
-
-    data.apply(new GroupingRssi.EncodeJson())
-        .apply(PubsubIO.Write.topic(options.getOutputTopic()));
+    input.apply(new GroupingRssi.DecodeJson())
+         .apply(Window.<KV<String, Double>>into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
+         .apply(Max.<String>doublesPerKey())
+         .apply(ParDo.of(new GroupingRssi.PairingMonitorMacFn()))
+         .apply(GroupByKey.<String, KV<String, Double>>create())
+         .apply(ParDo.of(new GroupingRssi.EncodeJsonFn()))
+         .apply(PubsubIO.Write.topic(options.getOutputTopic()));
 
     PipelineResult result = pipeline.run();
   }
