@@ -10,7 +10,7 @@
     - pyyaml
     - requests
     - mon-if
-    - capture
+    - { role: capture, tags: [ 'capture' ] }
     - { role: zabbix-agent, tags: [ 'zabbix-agent' ] }
     - { role: post_data, tags: [ 'post_data' ] }
     - { role: static_ip, tags: [ 'static_ip' ] }
