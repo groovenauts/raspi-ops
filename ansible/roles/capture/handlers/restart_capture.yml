@@ -1,0 +1,16 @@
+- systemd:
+    name: capture
+    state: stopped
+- file: 
+    path: /var/log/capture/
+    state: absent
+- file:
+    path: /var/log/capture
+    state: directory
+    owner: capture
+    group: wireshark
+    mode: 0775
+- systemd:
+    name: capture
+    state: started
+    daemon_reload: yes
