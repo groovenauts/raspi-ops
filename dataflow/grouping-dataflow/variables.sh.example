@@ -1,0 +1,6 @@
+
+export PROJECT_ID="MY-PROJECT-ID"
+export STAGING="gs://DATAFLOW-STAGING-BUCKET"
+export INPUT_TOPIC="projects/${PROJECT_ID}/topics/INPUT-TOPIC"
+export OUTPUT_TOPIC="projects/${PROJECT_ID}/topics/OUTPUT-TOPIC"
+
