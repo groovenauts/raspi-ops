@@ -74,12 +74,12 @@ FROM
       q += "NULL AS r#{j+1}, "
     end
   }
-  q += "room, x, y\n"
-  q += "FROM [#{project_id}:#{dataset}.measurement_data_per_raspi] WHERE raspi_mac = \"#{addr}\" GROUP BY t, room, x, y)"
+  q += "src_mac, room, x, y\n"
+  q += "FROM [#{project_id}:#{dataset}.measurement_data_per_raspi] WHERE raspi_mac = \"#{addr}\" GROUP BY t, src_mac, room, x, y)"
   q
 }.join(",\n")
 }
-GROUP BY t, room, x, y
+GROUP BY t, src_mac, room, x, y
 ORDER BY room, x, y, t
 EOQ
 
