@@ -127,12 +127,25 @@ public class GroupingRssi {
     @Override
     public void processElement(ProcessContext c) {
       KV<String, Iterable<KV<String, Double>>> row = c.element();
-      String buf = "";
+      String[] ary = row.getKey().split("%");
+      Integer timestamp = Integer.parseInt(ary[0]) * 10;
+      String srcMac = ary[1];
+
+      String buf = "{";
+      buf += "\"timestamp\": " + String.valueOf(timestamp) + ", ";
+      buf += "\"mac_addr\": \"" + srcMac + "\", ";
+      buf += "\"rssi\": {";
+      Boolean first = true;
       for (Iterator<KV<String, Double>> i = row.getValue().iterator(); i.hasNext();){
         KV<String, Double> e = i.next();
-        buf += e.getKey() + ":" + String.valueOf(e.getValue()) + " ";
+        if (!first) {
+          buf += ", ";
+        }
+        first = false;
+        buf += "\"" + e.getKey() + "\":" + String.valueOf(e.getValue());
       }
-      c.output(row.getKey() + " " + buf);
+      buf += "} }";
+      c.output(buf);
     }
   }
 
