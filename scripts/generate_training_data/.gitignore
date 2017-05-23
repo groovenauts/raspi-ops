@@ -1,3 +1,5 @@
 /.bundle
 /vendor/bundle
 /config*.yml
+/*-training.csv
+/*-test.csv
