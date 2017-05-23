@@ -4,7 +4,6 @@ require "yaml"
 require "kura"
 
 config = {
-  project_id: "blocks-next-2017",
   interval: 10,
 }
 OptionParser.new do |opt|
