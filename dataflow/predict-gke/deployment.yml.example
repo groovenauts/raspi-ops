@@ -1,0 +1,32 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: device-detector
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: device-detector
+    spec:
+      containers:
+      - name: device-detector
+        image: gcr.io/MY-PROJECT-ID/device_detector:latest
+        env:
+        - name: PROJECT
+          value: MY-PROJECT-ID
+        - name: INPUT_SUBSCRIPTION
+          value: dataflow-predict-pipeline
+        - name: MAC_ADDRESSES
+          value: HOST1,HOST2,HOST3
+        - name: ROOM_CLASSIFIER
+          value: ML_MODEL_NAME1
+        - name: POSITION_INFERERS
+          value: "1:ML_MODEL_NAME2,2:ML_MODEL_NAME2"
+        - name: BIGQUERY_DATASET
+          value: DATASET_ID
+        - name: BIGQUERY_TABLE
+          value: TABLE_ID
+        resources:
+          requests:
+            cpu: "1m"
