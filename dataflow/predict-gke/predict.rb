@@ -16,8 +16,9 @@ class Pubsub
     ret = @api.pull_subscription(subscription, Google::Apis::PubsubV1::PullRequest.new(max_messages: 1000, return_immediately: false))
     ret.received_messages || []
   rescue Google::Apis::TransmissionError
-    $stderr.puts $!
-    $stderr.flush
+    unless /execution expired/ =~ $!.message
+      $stderr.puts $!
+    end
     []
   end
 
@@ -47,12 +48,10 @@ module ML
       jobj = JSON.parse(res.body)
     rescue
       $stderr.puts "ERR: #{$!}"
-      $stderr.flush
       return nil
     end
     if jobj["error"]
       $stderr.puts "ERR: #{project}/#{model} #{jobj["error"]}"
-      $stderr.flush
       return nil
     end
     jobj["predictions"]
@@ -60,13 +59,13 @@ module ML
 end
 
 def main(project, input_subscription, raspi_table, room_classifier, position_inferers, bq_dataset, bq_table)
+  $stdout.puts "PubSub:#{input_subscription} -> ML Engine -> BigQuery [#{project}:#{bq_dataset}.#{bq_table}]"
   pubsub = Pubsub.new
   bq = Kura::Client.new
 
   loop do
     msgs = pubsub.pull(input_subscription)
     $stdout.puts "#{msgs.size} messages pulled."
-    $stdout.flush
     next if msgs.empty?
     st = Time.now
     data = msgs.map{|m| JSON.parse(m.message.data) rescue nil }.compact
@@ -96,7 +95,6 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
     pubsub.ack(input_subscription, msgs)
     ed = Time.now
     $stdout.puts "#{ed - st} seconds to process #{msgs.size} messages."
-    $stdout.flush
   end
 end
 
@@ -121,4 +119,6 @@ else
   bq_table = ENV["BIGQUERY_TABLE"]
 end
 
+$stdout.sync = true
+$stderr.sync = true
 main(project, input_subscription, raspi_table, room_classifier, position_inferers, bq_dataset, bq_table)
