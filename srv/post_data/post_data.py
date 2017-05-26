@@ -122,7 +122,7 @@ def main(target_dir, raspi_mac_addr, config_path):
             if len(files) <= 1:
                 time.sleep(1.0)
                 continue
-            files.sort()
+            files.sort(key=lambda x: x.split("_")[-1])
             files.pop()
             for f in files:
                 csv_file = f + ".csv"
