@@ -1,2 +1,5 @@
 - name: restart capture
-  include: 'restart_capture.yml'
+  systemd:
+    name: capture
+    state: restarted
+    daemon_reload: yes
