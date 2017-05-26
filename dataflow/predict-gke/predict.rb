@@ -71,15 +71,21 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
     st = Time.now
     data = msgs.map{|m| JSON.parse(m.message.data) rescue nil }.compact
     instances = data.map do |m|
-      { "key" => m["timestamp"].to_s + "_" + m["mac_addr"], "rssi" => raspi_table.map{|n| m["rssi"][n] || -100.0 } }
+      { "key" => m["window_time"].to_s + "_" + m["timestamp"].to_s + "_" + m["mac_addr"], "rssi" => raspi_table.map{|n| m["rssi"][n] || -100.0 } }
     end
     room_labels = ML.predict(project, room_classifier, instances)
     results = {}
     rooms = {}
     instances.each do|ins|
       r = room_labels.find{|pred| pred["key"] == ins["key"] }
-      timestamp, mac = ins["key"].split("_", 2)
-      results[ins["key"]] = { "timestamp" => timestamp.to_i, "mac_addr" => mac, "room" => r["label"] }
+      window_timestamp, timestamp, mac = ins["key"].split("_", 3)
+      results[ins["key"]] = {
+        "timestamp" => timestamp.to_i,
+        "window_timestamp" => window_timestamp.to_i,
+        "mac_addr" => mac,
+        "room" => r["label"],
+        "monitored_ap_count" => ins["rssi"].count{|sig| sig != -100.0 },
+      }
       if position_inferers.include?(r["label"].to_s)
         rooms[r["label"]] ||= []
         rooms[r["label"]] << ins
