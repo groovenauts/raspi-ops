@@ -31,6 +31,7 @@ import com.google.cloud.dataflow.sdk.options.DataflowPipelineOptions;
 import com.google.cloud.dataflow.sdk.options.PipelineOptions;
 import com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;
 import com.google.cloud.dataflow.sdk.transforms.DoFn;
+import com.google.cloud.dataflow.sdk.transforms.DoFn.RequiresWindowAccess;
 import com.google.cloud.dataflow.sdk.transforms.ParDo;
 import com.google.cloud.dataflow.sdk.transforms.PTransform;
 import com.google.cloud.dataflow.sdk.transforms.windowing.FixedWindows;
@@ -123,15 +124,18 @@ public class GroupingRssi {
     }
   }
 
-  static class EncodeJsonFn extends DoFn<KV<String,Iterable<KV<String, Double>>>, String> {
+  static class EncodeJsonFn extends DoFn<KV<String,Iterable<KV<String, Double>>>, String>
+      implements RequiresWindowAccess {
     @Override
     public void processElement(ProcessContext c) {
       KV<String, Iterable<KV<String, Double>>> row = c.element();
       String[] ary = row.getKey().split("%");
       Integer timestamp = Integer.parseInt(ary[0]) * 10;
       String srcMac = ary[1];
+      String windowTime = String.valueOf((c.window().maxTimestamp().getMillis()+1)/1000 - WINDOW_SIZE * 60);
 
       String buf = "{";
+      buf += "\"window_time\": " + windowTime + ", ";
       buf += "\"timestamp\": " + String.valueOf(timestamp) + ", ";
       buf += "\"mac_addr\": \"" + srcMac + "\", ";
       buf += "\"rssi\": {";
