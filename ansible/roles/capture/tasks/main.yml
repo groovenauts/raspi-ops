@@ -39,3 +39,5 @@
 - systemd:
     name: capture
     enabled: yes
+    daemon_reload: yes
+
