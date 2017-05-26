@@ -4,9 +4,10 @@ After=mon-if.service
 
 [Service]
 EnvironmentFile=/srv/capture/capture.conf
+ExecStartPre=/usr/bin/find /var/log/capture/ -type f -delete
 ExecStart=/srv/capture/capture.sh
 ExecReload=/bin/kill -HUP $MAINPID
-ExecStop=/bin/kill $MAINPID
+ExecStop=/bin/kill $MAINPID 
 KillMode=control-group
 Restart=on-failure
 Type=simple
