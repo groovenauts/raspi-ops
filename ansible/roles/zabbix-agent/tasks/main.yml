@@ -32,3 +32,10 @@
     group: zabbix
     mode: 0644
   notify: restart zabbix-agent
+- copy:
+    src: etc/zabbix/scripts/
+    dest: /etc/zabbix/scripts/
+    owner: zabbix
+    group: zabbix
+    mode: 0755
+  notify: restart zabbix-agent
