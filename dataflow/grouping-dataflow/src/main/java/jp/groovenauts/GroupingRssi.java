@@ -159,12 +159,12 @@ public class GroupingRssi {
     Integer getWindowSize();
     void setWindowSize(Integer value);
 
-    @Description("Pub/Sub topic")
-    @Default.String("projects/PROJECT-ID/topics/streamingInTopic")
-    String getPubsubTopic();
-    void setPubsubTopic(String topic);
+    @Description("Input Pub/Sub Subscription Name")
+    @Default.String("projects/PROJECT-ID/subscriptions/streamingInSubscription")
+    String getInputSubscription();
+    void setInputSubscription(String topic);
 
-    @Description("Output Topic Name")
+    @Description("Output Pub/Sub Topic Name")
     @Default.String("projects/PROJECT-ID/topics/streamingOutTopic")
     String getOutputTopic();
     void setOutputTopic(String value);
@@ -189,7 +189,7 @@ public class GroupingRssi {
      * injection.
      */
     input = pipeline
-        .apply(PubsubIO.Read.topic(options.getPubsubTopic()));
+        .apply(PubsubIO.Read.subscription(options.getInputSubscription()));
 
     input.apply(new GroupingRssi.DecodeJson())
          .apply(Window.<KV<String, Double>>into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
