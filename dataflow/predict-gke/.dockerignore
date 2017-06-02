@@ -1,4 +1,3 @@
 .bundle
 vendor/bundle
-config.yml
-deployment.yml
+*.yml
