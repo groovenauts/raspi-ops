@@ -23,4 +23,4 @@ if [ -z "${HOST_NAME}" ] ; then
   exit 1
 fi
 
-python "${POST_DATA_PY}" "${OUTLOG}" "${HOST_NAME}" "${CONFIG_PATH}"
+python -u "${POST_DATA_PY}" "${OUTLOG}" "${HOST_NAME}" "${CONFIG_PATH}"
