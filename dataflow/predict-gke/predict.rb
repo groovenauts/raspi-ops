@@ -13,12 +13,12 @@ class Pubsub
   end
 
   def pull(subscription)
-    ret = @api.pull_subscription(subscription, Google::Apis::PubsubV1::PullRequest.new(max_messages: 1000, return_immediately: false))
+    options = Google::Apis::RequestOptions.default
+    options.timeout_sec = 600
+    ret = @api.pull_subscription(subscription, Google::Apis::PubsubV1::PullRequest.new(max_messages: 1000, return_immediately: false), options: options)
     ret.received_messages || []
   rescue Google::Apis::TransmissionError
-    unless /execution expired/ =~ $!.message
-      $stderr.puts $!
-    end
+    $stderr.puts $!
     []
   end
 
