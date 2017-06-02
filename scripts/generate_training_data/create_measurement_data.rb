@@ -14,7 +14,7 @@ OptionParser.new do |opt|
     config[:dataset] = str
   end
   opt.on("--interval INTERVAL", "specify interval in seconds", Integer) do |int|
-    confing[:interval] = int
+    config[:interval] = int
   end
   opt.parse!
   if ARGV[0]
