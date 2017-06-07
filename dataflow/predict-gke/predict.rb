@@ -88,7 +88,7 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
         "window_timestamp" => window_timestamp.to_i,
         "mac_addr" => mac,
         "room" => r["label"],
-        "monitored_ap_count" => ins["rssi"].count{|sig| sig != -100.0 },
+        "monitored_ap_count" => ins["rssi"][0, raspi_table.size].count{|sig| sig != 0.0 },
       }
       if position_inferers.include?(r["label"].to_s)
         rooms[r["label"]] ||= []
