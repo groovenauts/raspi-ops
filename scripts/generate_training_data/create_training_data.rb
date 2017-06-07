@@ -32,16 +32,17 @@ end
 project_id = config[:project_id]
 dataset = config[:dataset]
 mac_addresses = config[:mac_addresses]
+ap_count = mac_addresses.size
 puts "Project ID: #{project_id}"
 puts "Dataset ID: #{dataset}"
-puts "Monitoring Mac Addresses: #{mac_addresses.count}"
+puts "Monitoring Mac Addresses: #{ap_count}"
 
 client = Kura::Client.new(default_project_id: project_id)
 
 if config[:room]
   room_query = "#standardSQL\n"
   room_query << "SELECT\n"
-  mac_addresses.size.times do |i|
+  ap_count.times do |i|
     num = i + 1
     room_query << "  IFNULL(r#{num}, -100) AS r#{num},\n"
   end
@@ -56,7 +57,7 @@ if config[:room]
   while true
     data = client.list_tabledata(dest.dataset_id, dest.table_id, project_id: dest.project_id, page_token: page_token, max_result: 1000)
     data[:rows].each do |r|
-      total << [ *mac_addresses.size.times.map{|i| r["r#{i+1}"] }, r["x"], r["y"] ]
+      total << [ *ap_count.times.map{|i| r["r#{i+1}"] }, r["x"], r["y"] ]
     end
     page_token = data[:next_token]
     break if page_token.nil?
@@ -64,7 +65,7 @@ if config[:room]
 else
   room_query = "#standardSQL\n"
   room_query << "SELECT\n"
-  mac_addresses.size.times do |i|
+  ap_count.times do |i|
     num = i + 1
     room_query << "  IFNULL(r#{num}, -100) AS r#{num},\n"
   end
@@ -78,15 +79,25 @@ else
   while true
     data = client.list_tabledata(dest.dataset_id, dest.table_id, project_id: dest.project_id, page_token: page_token, max_result: 1000)
     data[:rows].each do |r|
-      total << [ *mac_addresses.size.times.map{|i| r["r#{i+1}"] }, r["room"] ]
+      total << [ *ap_count.times.map{|i| r["r#{i+1}"] }, r["room"] ]
     end
     page_token = data[:next_token]
     break if page_token.nil?
   end
 end
+
+# Normalize (rssi + 100.0) / 50.0
+total.map!{|row| [ *row[0, ap_count].map{|i| (i.to_f + 100) / 50.0 }, *row[ap_count..-1]] }
+puts "Total #{total.size} rows"
+# Boost data by dropping rssi from arbitrary AP
+total = total.flat_map{|row| ap_count.times.map{|i| r = row.dup; r[i] = 0.0; r } }.uniq.reject{|row| row[0,ap_count].all?{|i| i == 0.0 } }
+puts "Total #{total.size} rows after boosted."
+# Feature combination
+total = total.map{|row| [*row[0,ap_count], *row[0,ap_count].combination(2).map{|a,b| b.to_f != 0 ? a.to_f / b.to_f : 0.0 }, *row[ap_count..-1]] }
+# Divide into training/test pair.
 training_size = (total.size * 0.8).floor
 test_size = total.size - training_size
-puts "Total #{total.size} rows: divide into #{training_size}:#{test_size} csv." 
+puts "Total #{total.size} rows: divide into #{training_size}:#{test_size} csv."
 total = total.shuffle
 open("#{config[:name]}-training.csv", "w"){|f| f.puts total[0, training_size].map{|l| l.join(",") } }
 open("#{config[:name]}-test.csv", "w"){|f| f.puts total[training_size..-1].map{|l| l.join(",") } }

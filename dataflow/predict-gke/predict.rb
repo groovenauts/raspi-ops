@@ -15,7 +15,7 @@ class Pubsub
   def pull(subscription)
     options = Google::Apis::RequestOptions.default
     options.timeout_sec = 600
-    ret = @api.pull_subscription(subscription, Google::Apis::PubsubV1::PullRequest.new(max_messages: 1000, return_immediately: false), options: options)
+    ret = @api.pull_subscription(subscription, Google::Apis::PubsubV1::PullRequest.new(max_messages: 200, return_immediately: false), options: options)
     ret.received_messages || []
   rescue Google::Apis::TransmissionError
     $stderr.puts $!
@@ -70,7 +70,12 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
     st = Time.now
     data = msgs.map{|m| JSON.parse(m.message.data) rescue nil }.compact
     instances = data.map do |m|
-      { "key" => m["window_time"].to_s + "_" + m["timestamp"].to_s + "_" + m["mac_addr"], "rssi" => raspi_table.map{|n| m["rssi"][n] || -100.0 } }
+      rssi = raspi_table.map{|n| ((m["rssi"][n] || -100.0) + 100.0) / 50.0 }
+      combine = rssi.combination(2).map{|a, b| b.to_f != 0.0 ? a.to_f / b.to_f : 0.0 }
+      {
+        "key" => m["window_time"].to_s + "_" + m["timestamp"].to_s + "_" + m["mac_addr"],
+        "rssi" => rssi + combine,
+      }
     end
     room_labels = ML.predict(project, room_classifier, instances)
     results = {}
@@ -83,7 +88,7 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
         "window_timestamp" => window_timestamp.to_i,
         "mac_addr" => mac,
         "room" => r["label"],
-        "monitored_ap_count" => ins["rssi"].count{|sig| sig != -100.0 },
+        "monitored_ap_count" => ins["rssi"][0, raspi_table.size].count{|sig| sig != 0.0 },
       }
       if position_inferers.include?(r["label"].to_s)
         rooms[r["label"]] ||= []
