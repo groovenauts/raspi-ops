@@ -58,8 +58,9 @@ module ML
   end
 end
 
-def main(project, input_subscription, raspi_table, room_classifier, position_inferers, bq_dataset, bq_table, ignore_list)
+def main(project, input_subscription, raspi_table, room_classifier, position_inferers, bq_dataset, bq_table, ignore_list, feature_opts)
   $stdout.puts "PubSub:#{input_subscription} -> ML Engine -> BigQuery [#{project}:#{bq_dataset}.#{bq_table}]"
+  $stdout.puts feature_opts.inspect
   pubsub = Pubsub.new
   bq = Kura::Client.new
 
@@ -72,14 +73,27 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
     instances = data.reject{|m|
       ignore_list.include?(m["mac_addr"])
     }.map do |m|
-      rssi = raspi_table.map{|n| ((m["rssi"][n] || -100.0) + 100.0) / 50.0 }
-      combine = rssi.combination(2).map{|a, b| b.to_f != 0.0 ? a.to_f / b.to_f : 0.0 }
+      if feature_opts[:normalize]
+        rssi = raspi_table.map{|n| ((m["rssi"][n] || -100.0) + 100.0) / 50.0 }
+      else
+        rssi = raspi_table.map{|n| m["rssi"][n] || -100.0 }
+      end
+      if feature_opts[:combine]
+        combine = rssi.combination(2).map{|a, b| b.to_f != 0.0 ? a.to_f / b.to_f : 0.0 }
+      else
+        combine = []
+      end
       {
         "key" => m["window_time"].to_s + "_" + m["timestamp"].to_s + "_" + m["mac_addr"],
         "rssi" => rssi + combine,
       }
     end
-    if data.size > 0
+    if feature_opts[:normalize]
+      default_signal = 0.0
+    else
+      default_signal = -100.0
+    end
+    if instances.size > 0
       room_labels = ML.predict(project, room_classifier, instances)
       results = {}
       rooms = {}
@@ -91,7 +105,7 @@ def main(project, input_subscription, raspi_table, room_classifier, position_inf
           "window_timestamp" => window_timestamp.to_i,
           "mac_addr" => mac,
           "room" => r["label"],
-          "monitored_ap_count" => ins["rssi"][0, raspi_table.size].count{|sig| sig != 0.0 },
+          "monitored_ap_count" => ins["rssi"][0, raspi_table.size].count{|sig| sig != default_signal },
         }
         if position_inferers.include?(r["label"].to_s)
           rooms[r["label"]] ||= []
@@ -125,6 +139,8 @@ if config
   bq_dataset = config["bigquery_dataset"]
   bq_table = config["bigquery_table"]
   ignore_list = config["ignore_mac_addrs"]
+  disable_normalize = config["disable_normalize"]
+  disable_combine = config["disable_combine"]
 else
   project = ENV["PROJECT"]
   input_subscription = "projects/#{project}/subscriptions/#{ENV["INPUT_SUBSCRIPTION"]}"
@@ -134,8 +150,14 @@ else
   bq_dataset = ENV["BIGQUERY_DATASET"]
   bq_table = ENV["BIGQUERY_TABLE"]
   ignore_list = (ENV["IGNORE_MAC_ADDRESSES"] || "").split(",")
+  disable_normalize = ENV["DISABLE_NORMALIZE"]
+  disable_combine = ENV["DISABLE_COMBINE"]
 end
+feature_opts = {
+  normalize: not(disable_normalize),
+  combine: not(disable_combine),
+}
 
 $stdout.sync = true
 $stderr.sync = true
-main(project, input_subscription, raspi_table, room_classifier, position_inferers, bq_dataset, bq_table, ignore_list)
+main(project, input_subscription, raspi_table, room_classifier, position_inferers, bq_dataset, bq_table, ignore_list, feature_opts)
