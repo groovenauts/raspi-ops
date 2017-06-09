@@ -5,6 +5,9 @@ require "kura"
 
 config = {
   name: "demo",
+  normalize: true,
+  inflate: true,
+  combine: true
 }
 OptionParser.new do |opt|
   opt.on("--project PROJECT_ID", "specify GCP project id") do |str|
@@ -18,6 +21,15 @@ OptionParser.new do |opt|
   end
   opt.on("--room ROOM_NUMBER", "specify room number for generating positional data.", Integer) do |num|
     config[:room] = num
+  end
+  opt.on("--[no-]normalize", "specify if normalize rssi") do |flg|
+    config[:normalize] = flg
+  end
+  opt.on("--[no-]inflate", "specify if infrate training data") do |flg|
+    config[:inflate] = flg
+  end
+  opt.on("--[no-]combine", "specify if add combined rssi features") do |flg|
+    config[:combine] = flg
   end
   opt.parse!
   if ARGV[0]
@@ -86,14 +98,22 @@ else
   end
 end
 
-# Normalize (rssi + 100.0) / 50.0
-total.map!{|row| [ *row[0, ap_count].map{|i| (i.to_f + 100) / 50.0 }, *row[ap_count..-1]] }
 puts "Total #{total.size} rows"
-# Boost data by dropping rssi from arbitrary AP
-total = total.flat_map{|row| ap_count.times.map{|i| r = row.dup; r[i] = 0.0; r } }.uniq.reject{|row| row[0,ap_count].all?{|i| i == 0.0 } }
-puts "Total #{total.size} rows after boosted."
-# Feature combination
-total = total.map{|row| [*row[0,ap_count], *row[0,ap_count].combination(2).map{|a,b| b.to_f != 0 ? a.to_f / b.to_f : 0.0 }, *row[ap_count..-1]] }
+if config[:normalize]
+  # Normalize (rssi + 100.0) / 50.0
+  total.map!{|row| [ *row[0, ap_count].map{|i| (i.to_f + 100) / 50.0 }, *row[ap_count..-1]] }
+end
+if config[:inflate]
+  # Inflate data by dropping rssi from arbitrary AP
+  default_val = config[:normalize] ? 0.0 : "-100.0"
+  total = total.flat_map{|row| ap_count.times.map{|i| r = row.dup; r[i] = default_val; r } }.uniq.reject{|row| row[0,ap_count].all?{|i| i == default_val } }
+  puts "Total #{total.size} rows after inflated."
+end
+if config[:combine]
+  # Feature combination
+  total = total.map{|row| [*row[0,ap_count], *row[0,ap_count].combination(2).map{|a,b| b.to_f != 0 ? a.to_f / b.to_f : 0.0 }, *row[ap_count..-1]] }
+end
+
 # Divide into training/test pair.
 training_size = (total.size * 0.8).floor
 test_size = total.size - training_size
