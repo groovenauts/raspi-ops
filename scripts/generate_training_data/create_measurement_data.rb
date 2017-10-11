@@ -52,6 +52,7 @@ puts "Run query."
 puts measurement_per_raspi_query
 
 client.query(measurement_per_raspi_query, dataset_id: dataset, table_id: "measurement_data_per_raspi",
+             maximum_billing_tier: 10,
              allow_large_results: true,
              priority: "INTERACTIVE",
              mode: :truncate,
@@ -86,6 +87,7 @@ puts "Run query."
 puts measurement_data_query
 client.query(measurement_data_query, dataset_id: dataset, table_id: "measurement_data",
              allow_large_results: true,
+             maximum_billing_tier: 10,
              priority: "INTERACTIVE",
              mode: :truncate,
              wait: 300)
