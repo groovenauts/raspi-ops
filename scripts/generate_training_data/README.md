@@ -24,7 +24,7 @@ This tool create xxx-training.csv and xxx-test.csv to be used in BLOCKS ML Board
 
 1. `cd scripts/generate_training_data`
 2. `bundle install --path vendor/bundle`
-3. `bundle exec ruby create_easurement_data.rb --project=PROJECT-ID --dataset=DATASET_ID --name=PREFIX` to create room classifier's training data.
-4. `bundle exec ruby create_easurement_data.rb --project=PROJECT-ID --dataset=DATASET_ID --name=PREFIX --room=ROOM_NO` to create position predictor's training data.
+3. `bundle exec ruby create_training_data.rb --project=PROJECT-ID --dataset=DATASET_ID --name=PREFIX` to create room classifier's training data.
+4. `bundle exec ruby create_training_data.rb --project=PROJECT-ID --dataset=DATASET_ID --name=PREFIX --room=ROOM_NO` to create position predictor's training data.
 
 
