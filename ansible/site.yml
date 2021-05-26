@@ -2,15 +2,10 @@
   hosts: all
   become: yes
   roles:
-    - ntp
-    - timezone
-    - git
-    - tshark
-    - python-pip
-    - pyyaml
-    - requests
+    - python-apt
     - mon-if
+    - tshark
+    - pyyaml
     - { role: capture, tags: [ 'capture' ] }
-    - { role: zabbix-agent, tags: [ 'zabbix-agent' ] }
     - { role: post_data, tags: [ 'post_data' ] }
-    - { role: static_ip, tags: [ 'static_ip' ] }
+

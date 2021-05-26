@@ -1,1 +1,1 @@
-- pip: name=pyyaml version={{ pyyaml.version }}
+- pip: name=pyyaml

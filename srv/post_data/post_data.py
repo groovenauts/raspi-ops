@@ -105,7 +105,7 @@ def read_csvfile(queue, csv_file, raspi_mac_addr, url, api_token, message_type):
 def main(target_dir, raspi_mac_addr, config_path):
     global runningFlag
 
-    config = yaml.load(open(config_path, 'r'))
+    config = yaml.load(open(config_path, 'r'),Loader=yaml.SafeLoader)
     url = config['url']
     api_token = config['api_token']
     message_type = config['message_type']

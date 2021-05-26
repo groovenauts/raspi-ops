@@ -1,2 +1,0 @@
-- name: reboot os
-  include: 'reboot_os.yml'
