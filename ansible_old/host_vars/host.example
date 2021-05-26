@@ -1,0 +1,9 @@
+static_ip_eth0:
+  ip_address: <MY_HOST_IP>/<MASK>
+  routers: <ROUTER_IP>
+  domain_name_servers: <DNS_IP>
+
+static_ip_wlan0:
+  ip_address: <MY_HOST_IP>/<MASK>
+  routers: <ROUTER_IP>
+  domain_name_servers: <DNS_IP>

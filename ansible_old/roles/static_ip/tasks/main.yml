@@ -1,0 +1,13 @@
+- template:
+    src: etc/dhcpcd.conf.j2
+    dest: /etc/dhcpcd.conf
+    owner: root
+    group: netdev
+    mode: 0664
+  notify: reboot os
+- sysctl:
+    name: net.ipv6.conf.all.disable_ipv6
+    value: 1
+    state: present
+    reload: no
+  notify: reboot os

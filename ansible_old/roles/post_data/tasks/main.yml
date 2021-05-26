@@ -1,0 +1,49 @@
+- user:
+    name: post_data
+    groups: wireshark
+    shell: /bin/false
+    home: /var/run/post_data
+- file:
+    path: /srv/post_data
+    state: directory
+    owner: post_data
+    group: post_data
+    mode: 0755
+- copy:
+    src: srv/post_data/post_data.sh
+    dest: /srv/post_data/post_data.sh
+    owner: post_data
+    group: post_data
+    mode: 0755
+  notify: restart post_data
+- copy:
+    src: srv/post_data/post_data.conf
+    dest: /srv/post_data/post_data.conf
+    owner: post_data
+    group: post_data
+    mode: 0644
+  notify: restart post_data
+- template:
+    src: srv/post_data/config.yaml.j2
+    dest: /srv/post_data/config.yaml
+    owner: post_data
+    group: post_data
+    mode: 0644
+  notify: restart post_data
+- copy:
+    src: srv/post_data/post_data.py
+    dest: /srv/post_data/post_data.py
+    owner: post_data
+    group: post_data
+    mode: 0644
+  notify: restart post_data
+- copy:
+    src: etc/systemd/system/post_data.service
+    dest: /etc/systemd/system/post_data.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart post_data
+- systemd:
+    name: post_data
+    enabled: yes
