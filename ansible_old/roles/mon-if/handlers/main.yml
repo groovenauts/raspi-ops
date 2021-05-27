@@ -1,0 +1,5 @@
+- name: mon-if up
+  systemd:
+    name: mon-if
+    state: restarted 
+    daemon_reload: yes

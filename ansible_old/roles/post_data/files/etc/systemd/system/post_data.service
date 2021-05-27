@@ -1,0 +1,16 @@
+[Unit]
+Description = post_data process
+After=capture.service
+
+[Service]
+EnvironmentFile=/srv/post_data/post_data.conf
+ExecStart=/srv/post_data/post_data.sh
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill $MAINPID
+KillMode=control-group
+Restart=on-failure
+Type=simple
+User=post_data
+
+[Install]
+WantedBy=multi-user.target

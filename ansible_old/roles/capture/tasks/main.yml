@@ -1,0 +1,43 @@
+- user:
+    name: capture
+    groups: wireshark
+    shell: /bin/false
+    home: /var/run/capture
+- file: 
+    path: /srv/capture
+    state: directory
+    owner: capture
+    group: capture
+    mode: 0755
+- file:
+    path: /var/log/capture
+    state: directory
+    owner: capture
+    group: wireshark
+    mode: 0775
+- copy:
+    src: srv/capture/capture.sh
+    dest: /srv/capture/capture.sh
+    owner: capture
+    group: capture
+    mode: 0755
+  notify: restart capture
+- copy:
+    src: srv/capture/capture.conf
+    dest: /srv/capture/capture.conf
+    owner: capture
+    group: capture
+    mode: 0644
+  notify: restart capture
+- copy: 
+    src: etc/systemd/system/capture.service
+    dest: /etc/systemd/system/capture.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart capture
+- systemd:
+    name: capture
+    enabled: yes
+    daemon_reload: yes
+

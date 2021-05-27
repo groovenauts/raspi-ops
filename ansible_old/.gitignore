@@ -4,4 +4,3 @@ hosts*
 host_vars/*
 !host_vars/host.example
 site.retry
-*.mk

@@ -1,0 +1,5 @@
+- name: restart post_data
+  systemd: 
+    name: post_data
+    state: restarted
+    daemon_reload: yes
