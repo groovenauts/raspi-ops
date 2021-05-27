@@ -1,0 +1,18 @@
+- mount:
+    path: /tmp
+    src: tmpfs
+    fstype: tmpfs
+    opts: defaults,size=32m,noatime,mode=1777
+    state: present
+- mount:
+    path: /var/tmp
+    src: tmpfs
+    fstype: tmpfs
+    opts: defaults,size=16m,noatime,mode=1777
+    state: present
+- mount:
+    path: /var/log
+    src: tmpfs
+    fstype: tmpfs
+    opts: defaults,size=64m,noatime,mode=0755
+    state: present
