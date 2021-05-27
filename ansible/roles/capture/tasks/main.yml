@@ -9,12 +9,6 @@
     owner: capture
     group: capture
     mode: 0755
-- file:
-    path: /var/log/capture
-    state: directory
-    owner: capture
-    group: wireshark
-    mode: 0775
 - copy:
     src: srv/capture/capture.sh
     dest: /srv/capture/capture.sh

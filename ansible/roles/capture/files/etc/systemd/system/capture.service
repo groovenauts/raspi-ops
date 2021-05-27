@@ -4,7 +4,10 @@ After=mon-if.service
 
 [Service]
 EnvironmentFile=/srv/capture/capture.conf
-ExecStartPre=/usr/bin/find /var/log/capture/ -type f -delete
+ExecStartPre=+/usr/bin/rm -rf /var/log/capture
+ExecStartPre=+/usr/bin/mkdir /var/log/capture
+ExecStartPre=+/usr/bin/chown capture:wireshark /var/log/capture
+ExecStartPre=+/usr/bin/chmod 775 /var/log/capture
 ExecStart=/srv/capture/capture.sh
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill $MAINPID 
