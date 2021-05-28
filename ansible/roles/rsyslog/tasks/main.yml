@@ -1,0 +1,6 @@
+- copy:
+    src: etc/rsyslog.conf
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: 0644

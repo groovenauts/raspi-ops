@@ -1,0 +1,12 @@
+- shell: swapon -v
+  register: swap_state
+  check_mode: false
+  changed_when: false
+
+- shell: swapoff -a
+  when: swap_state.stdout != ''
+
+- systemd:
+    name: dphys-swapfile
+    enabled: no
+    state: stopped
