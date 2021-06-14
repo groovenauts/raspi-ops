@@ -1,0 +1,12 @@
+- file: 
+    path: /etc/cron.daily/man-db
+    state: file
+    owner: root
+    group: root
+    mode: 0644
+- file: 
+    path: /etc/cron.weekly/man-db
+    state: file
+    owner: root
+    group: root
+    mode: 0644
