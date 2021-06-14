@@ -5,6 +5,8 @@
     - swap
     - rsyslog
     - tmpfs
+    - logrotate
+    - man-db
     - python-apt
     - mon-if
     - tshark
