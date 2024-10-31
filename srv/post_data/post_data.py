@@ -28,6 +28,49 @@ def interrupt(sig, stack):
 signal.signal(signal.SIGINT, interrupt)
 signal.signal(signal.SIGTERM, interrupt)
 
+# queueの内容をcsv形式でGoogleCloudStorageにuploadする関数
+def upload_to_gcs(queue, bucket_name, gcs_dir ):
+    from google.cloud import storage
+    from google.cloud.storage import Blob
+    import tempfile
+    import csv
+    import time
+
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_name)
+    # Object名のprefix = "YYYYMMDDHH0000/" + hostname
+    # hostnameはosコマンドから取得する
+    hostname = os.popen("hostname").read().strip()
+    gcs_object_prefix = time.strftime("%Y%m%d%H") + "0000/" + hostname
+    
+    while True:
+        try:
+            params = queue.get()
+            if params is None:
+                queue.task_done()
+                break
+
+            # データをcsv形式の一時ファイルに書き込む
+            with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+                writer = csv.writer(f)
+                for param in params:
+                    writer.writerow(param)
+            f.close()
+
+            # ファイル名を決定
+            gcs_file_name = gcs_object_prefix + "-" + time.strftime("%Y%m%d%H%M%S") + ".csv"
+
+            # ファイルをGCSにアップロード
+            blob = Blob(gcs_dir + gcs_file_name, bucket)
+            blob.upload_from_filename(f.name)
+
+            # 一時ファイルを削除
+            os.remove(f.name)
+
+            queue.task_done()
+        except Exception as ex:
+            print str(ex)
+
 def http_post(queue, url, api_token, message_type):
     while True:
         try:
