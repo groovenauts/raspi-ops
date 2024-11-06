@@ -29,7 +29,7 @@ signal.signal(signal.SIGINT, interrupt)
 signal.signal(signal.SIGTERM, interrupt)
 
 # queueの内容をcsv形式でGoogleCloudStorageにuploadする関数
-def upload_to_gcs(queue, bucket_name, gcs_dir ):
+def upload_to_gcs(queue, bucket_name):
     from google.cloud import storage
     from google.cloud.storage import Blob
     import tempfile
@@ -38,10 +38,8 @@ def upload_to_gcs(queue, bucket_name, gcs_dir ):
 
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
-    # Object名のprefix = "YYYYMMDDHH0000/" + hostname
     # hostnameはosコマンドから取得する
     hostname = os.popen("hostname").read().strip()
-    gcs_object_prefix = time.strftime("%Y%m%d%H") + "0000/" + hostname
     
     while True:
         try:
@@ -57,11 +55,13 @@ def upload_to_gcs(queue, bucket_name, gcs_dir ):
                     writer.writerow(param)
             f.close()
 
-            # ファイル名を決定
-            gcs_file_name = gcs_object_prefix + "-" + time.strftime("%Y%m%d%H%M%S") + ".csv"
+            # Object名のprefix = hostname
+            gcs_object_prefix = hostname
+            # Object名 = prefix + "-" + timestamp + ".csv"
+            gcs_object_name = gcs_object_prefix + "-" + time.strftime("%Y%m%d%H%M%S") + ".csv"
 
             # ファイルをGCSにアップロード
-            blob = Blob(gcs_dir + gcs_file_name, bucket)
+            blob = Blob(gcs_object_name, bucket)
             blob.upload_from_filename(f.name)
 
             # 一時ファイルを削除
