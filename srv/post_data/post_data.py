@@ -152,11 +152,12 @@ def main(target_dir, raspi_mac_addr, config_path):
     url = config['url']
     api_token = config['api_token']
     message_type = config['message_type']
+    bucket_name = config['bucket_name']
 
     request_queue = Queue.Queue(maxsize=1)
 
     for i in range(NUM_CONNECTION):
-        threading.Thread(target=http_post, args=(request_queue, url, api_token, message_type)).start()
+        threading.Thread(target=upload_to_gcs, args=(request_queue, bucket_name)).start()
 
     # process pcap files
     try:
